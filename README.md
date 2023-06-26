@@ -65,7 +65,7 @@ yarn install
 //or
 npm install
 ```
-
+## Usar UBUNTU 22.04
 ## Install puppeteer dependencies:
 
 ```sh
