@@ -68,8 +68,12 @@ export default class CreateSessionUtil {
           req.serverOptions.createOptions,
           {
             session: session,
-            deviceName: req.serverOptions.deviceName,
-            poweredBy: req.serverOptions.poweredBy || 'WPPConnect-Server',
+            deviceName:
+              client.config?.deviceName || req.serverOptions.deviceName,
+            poweredBy:
+              client.config?.poweredBy ||
+              req.serverOptions.poweredBy ||
+              'WPPConnect-Server',
             catchQR: (
               base64Qr: any,
               asciiQR: any,
@@ -160,11 +164,18 @@ export default class CreateSessionUtil {
       session: client.session,
     });
 
-    callWebHook(client, req, 'qrcode', { qrcode: qrCode, urlcode: urlCode });
+    callWebHook(client, req, 'qrcode', {
+      qrcode: qrCode,
+      urlcode: urlCode,
+      session: client.session,
+    });
     if (res && !res._headerSent)
-      res
-        .status(200)
-        .json({ status: 'qrcode', qrcode: qrCode, urlcode: urlCode });
+      res.status(200).json({
+        status: 'qrcode',
+        qrcode: qrCode,
+        urlcode: urlCode,
+        session: client.session,
+      });
   }
 
   async onParticipantsChanged(req: any, client: any) {
@@ -229,6 +240,8 @@ export default class CreateSessionUtil {
       }
 
       req.io.emit('received-message', { response: message });
+      if (req.serverOptions.webhook.onSelfMessage && message.fromMe)
+        callWebHook(client, req, 'onselfmessage', message);
     });
 
     await client.onIncomingCall(async (call) => {
